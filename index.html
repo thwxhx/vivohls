@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <meta name="referrer" content="no-referrer"> -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Epic Player</title>
+
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.2/plyr.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .player-wrap {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at center, rgba(0, 255, 132, 0.08), transparent 45%),
+        linear-gradient(135deg, #020805 0%, #000000 70%);
+      position: relative;
+    }
+
+    .player-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .plyr {
+      --plyr-color-main: #020852;
+      --plyr-video-control-color: #ffffff;
+      --plyr-video-control-color-hover: #ffffff;
+      --plyr-video-control-background-hover: #020852;
+      --plyr-range-fill-background: #020852;
+      --plyr-control-radius: 10px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .plyr--video .plyr__controls {
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.92),
+        rgba(0, 0, 0, 0.55),
+        transparent
+      ) !important;
+    }
+
+    .plyr--video .plyr__control--overlaid {
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      background: #020852 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 40px rgba(255, 255, 255, 1);
+    }
+
+    .plyr__control:hover {
+      background: #020852 !important;
+      color: #ffffff !important;
+    }
+
+    .plyr__menu__container {
+      background: #06120c !important;
+      border: 1px solid rgba(0, 255, 132, 0.25) !important;
+      color: #fff !important;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .plyr__menu__container .plyr__control {
+      color: #ffffff !important;
+    }
+
+    .plyr__menu__container .plyr__control:hover {
+      color: #ffffff !important;
+    }
+
+    /* ── EpicPlayer watermark ── */
+    #hx-watermark {
+      position: absolute;
+      left: 50%;
+      bottom: 62px;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.92;
+      pointer-events: none;
+      transition: opacity .9s, bottom .9s;
+      font-family: 'Rajdhani', sans-serif;
+      text-align: center;
+    }
+
+    #hx-watermark .wm-rule {
+      width: 22px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #00ff84);
+    }
+
+    #hx-watermark .wm-rule.right {
+      background: linear-gradient(90deg, #00ff84, transparent);
+    }
+
+    #hx-watermark .wm-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #hx-watermark .wm-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow: 0 0 14px rgba(0, 255, 132, 0.35);
+    }
+
+    #hx-watermark .wm-name .r {
+      color: #FF0000;
+    }
+
+    #hx-watermark .wm-url {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #b8c9c1;
+      margin-top: 2px;
+    }
+
+    .plyr:fullscreen #hx-watermark,
+    .plyr:-webkit-full-screen #hx-watermark {
+      bottom: 70px;
+      opacity: 0.2;
+    }
+
+    @media (max-width: 600px) {
+      #hx-watermark {
+        bottom: 58px;
+        gap: 7px;
+      }
+
+      #hx-watermark .wm-name {
+        font-size: 13px;
+        letter-spacing: 3px;
+      }
+
+      #hx-watermark .wm-url {
+        font-size: 8px;
+        letter-spacing: 2px;
+      }
+
+      #hx-watermark .wm-rule {
+        width: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="player-wrap">
+    <video id="player" controls playsinline webkit-playsinline preload="metadata"></video>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdn.plyr.io/3.6.2/plyr.polyfilled.js"></script>
+
+  <script>
+    (function () {
+      const video = document.getElementById('player');
+      const params = new URLSearchParams(location.search);
+      const videoURL = params.get('x');
+      if (!videoURL) return;
+
+      function addWatermark(player) {
+        const wm = document.createElement('div');
+        wm.id = 'hx-watermark';
+        wm.innerHTML =
+          '<span class="wm-rule"></span>' +
+          '<span class="wm-text">' +
+            '<span class="wm-name">VIVOSPORTS<span class="r">LIVE</span></span>' +
+            '<span class="wm-url">WATCH ALL LIVE SPORTS ⭐</span>' +
+          '</span>' +
+          '<span class="wm-rule right"></span>';
+        player.elements.container.appendChild(wm);
+      }
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        video.src = videoURL;
+        const player = new Plyr(video, {
+          fullscreen: { enabled: true, fallback: true, iosNative: true }
+        });
+        addWatermark(player);
+        return;
+      }
+
+      if (!Hls.isSupported()) return;
+
+      const hls = new Hls();
+      hls.loadSource(videoURL);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        const qualities = [];
+
+        hls.levels.forEach(function (level) {
+          if (!qualities.includes(level.height)) qualities.push(level.height);
+        });
+
+        qualities.sort(function (a, b) { return b - a; });
+
+        const player = new Plyr(video, {
+          settings: ['quality', 'speed', 'fullscreen'],
+          fullscreen: { enabled: true, fallback: true, iosNative: true },
+          quality: {
+            default: qualities[0] || 720,
+            options: qualities,
+            forced: true,
+            onChange: function (q) {
+              hls.levels.forEach(function (level, index) {
+                if (level.height === q) hls.currentLevel = index;
+              });
+            }
+          }
+        });
+
+        addWatermark(player);
+
+        document.addEventListener('fullscreenchange', () => {
+          if (document.fullscreenElement && screen.orientation?.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+          } else if (screen.orientation?.unlock) {
+            screen.orientation.unlock();
+          }
+        });
+
+        video.addEventListener('click', function () {
+          if (player.playing) player.pause();
+          else player.play();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
